@@ -23,6 +23,7 @@ async def get_news_list(
     page: int = 1,
     limit: int = 10,
    ) -> list[News]:
+   
     skip = (page - 1) * limit
 
     stmt = select(News).where(News.category_id == category_id).offset(skip).limit(limit)
