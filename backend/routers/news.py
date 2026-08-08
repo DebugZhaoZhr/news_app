@@ -1,7 +1,10 @@
 from config.db_conf import get_session
 from CRUD.news import get_categories as get_categories_crud
 from CRUD.news import get_news_list as get_news_list_crud
-from fastapi import APIRouter, Depends, Query
+from CRUD.news import get_news_detail as get_news_detail_crud
+from CRUD.news import increase_view_count, get_related_news
+
+from fastapi import APIRouter, Depends, HTTPException, Query
 from schemas.schemas import page_commons
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -27,7 +30,7 @@ async def get_categories(
 
 @router.get('/list')
 async def get_news_list(
-    category_id: int = Query(alias='categoryId'),
+    category_id: int | None = Query(None, alias='categoryId', description='分类ID（可选）'),
     page_commons: dict = Depends(page_commons),
     session: AsyncSession = Depends(get_session),
 ):
@@ -35,19 +38,43 @@ async def get_news_list(
         session=session,
         page=page_commons['page'],
         limit=page_commons['limit'],
-        category_id=category_id
+        category_id=category_id,
     )
-    total = response['total']
-    news = response['news']
     return {
         "code": 200,
         "message": "获取新闻列表成功",
         "data": {
-            "total": total,
+            "total": response['total'],
+            "hasMore": response['has_more'],
+            "list": response['news'],
             "category": category_id,
-            "list": news,
             "page": page_commons['page'],
             "limit": page_commons['limit'],
-            "hasMore": True,
         }
     }
+
+@router.get('/detail')
+async def get_news_detail_curd(
+    news_id: int = Query(alias='id', description='新闻ID'),
+    session: AsyncSession = Depends(get_session),
+):
+    response = await get_news_detail_crud(
+        session=session,
+        news_id=news_id,
+    )
+    if not response:
+        return HTTPException(status_code=404, detail="新闻不存在")
+    else:
+        views_res = await increase_view_count(session, news_id)
+        
+        if not views_res:
+            return HTTPException(status_code=404, detail="新闻不存在")
+        
+        related_news = await get_related_news(session, news_id, response.category_id)
+        # response['relatedNews'] = related_news
+
+        return {
+            "code": 200,
+            "message": "获取新闻详情成功",
+            "data": response
+        }

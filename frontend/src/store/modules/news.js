@@ -135,13 +135,12 @@ export const useNewsStore = defineStore("news", {
     async getNewsDetail(id) {
       try {
         // 在开发环境中，使用模拟数据
-        console.log("使用模拟新闻详情数据");
+        console.log("使用模拟新闻详情数据", id);
 
         // 实际项目中连接后端API的代码，取消注释即可使用
         const response = await axios.get(
           `${apiConfig.baseURL}/api/news/detail?id=${id}`,
         );
-
         if (response.data && response.data.code === 200) {
           // 设置新闻详情数据
           this.newsDetail = response.data.data;
