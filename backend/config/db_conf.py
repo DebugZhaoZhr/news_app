@@ -1,7 +1,7 @@
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 # 数据库URL
-async_database_url = "postgresql+asyncpg://postgres:postgres@localhost:5432/news_app"
+async_database_url = "postgresql+asyncpg://postgres:950825@localhost:5432/news_app"
 
 # 创建异步数据库引擎
 async_engine = create_async_engine(
@@ -11,7 +11,8 @@ async_engine = create_async_engine(
     max_overflow=20, # 设置连接池额外数量
     pool_timeout=20, # 设置连接池超时时间
     pool_recycle=3600, # 设置连接池回收时间
-    pool_pre_ping=True # 设置连接池预连接
+    pool_pre_ping=True, # 设置连接池预连接
+    connect_args={"timeout": 30}, # 设置连接超时时间
 )
 
 # 创建异步会话工厂

@@ -6,16 +6,18 @@
 // API基础URL配置
 export const apiConfig = {
   // 后端API基础URL
-  baseURL: 'http://127.0.0.1:8000',
-}
+  // baseURL: "http://127.0.0.1:5173",
+  baseURL: "",
+};
 
 export const aiChatConfig = {
   // OpenAI API地址
-  apiEndpoint: 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',
-  
+  apiEndpoint:
+    "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+
   // API Key (由开发人员指定)
-  apiKey: 'sk-xxx',
-  
+  apiKey: "sk-xxx",
+
   // 使用的模型
-  model: 'qwen3-max-preview'
-}
+  model: "qwen3-max-preview",
+};

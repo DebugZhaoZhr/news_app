@@ -1,0 +1,9 @@
+[tool.ruff]
+# 其他配置...
+
+[tool.ruff.lint]
+ignore = ["B008", 'I001']  # 全局忽略
+
+# 或者更精细：只在特定文件忽略
+[tool.ruff.lint.per-file-ignores]
+"backend/**/*.py" = ["B008"]
