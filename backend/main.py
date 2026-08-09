@@ -1,11 +1,12 @@
 from fastapi import FastAPI
 import uvicorn
 
-from routers import news
+from routers import news, user
 
 app = FastAPI()
 
 app.include_router(news.router)
+app.include_router(user.router)
 
 # 启动FastAPI应用
 if __name__ == "__main__":
