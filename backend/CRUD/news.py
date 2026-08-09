@@ -6,7 +6,6 @@ from random import randint
 
 
 async def get_categories(
-    # page_commons: dict = Depends(page_commons),
     session: AsyncSession,
     page: int = 1,
     limit: int = 10,
@@ -19,7 +18,6 @@ async def get_categories(
     return categories
 
 async def get_news_list(
-    # page_commons: dict = Depends(page_commons),
     session: AsyncSession,
     category_id: int | None = None,
     page: int = 1,

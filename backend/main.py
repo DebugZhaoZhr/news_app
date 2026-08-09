@@ -1,9 +1,13 @@
 from fastapi import FastAPI
 import uvicorn
+from utils.register_exception import register_exception_handlers
 
 from routers import news, user
 
 app = FastAPI()
+
+# 注册全局异常处理函数 
+register_exception_handlers(app)
 
 app.include_router(news.router)
 app.include_router(user.router)
