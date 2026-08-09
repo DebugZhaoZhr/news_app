@@ -76,5 +76,8 @@ async def get_news_detail_curd(
         return {
             "code": 200,
             "message": "获取新闻详情成功",
-            "data": response
+            "data": {
+                **response.__dict__,
+                "relatedNews": related_news,
+            }
         }
