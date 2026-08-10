@@ -31,9 +31,9 @@ export const useNewsStore = defineStore("news", {
         if (response.data && response.data.code === 200) {
           // 设置分类数据
           const {
-            data: { data },
+            data: { list },
           } = response.data;
-          this.categories = [...data, { id: 10, name: "更多" }];
+          this.categories = [...list, { id: 10, name: "更多" }];
 
           // 如果没有设置当前分类，则设置为第一个分类
           if (!this.currentCategory && this.categories.length > 0) {

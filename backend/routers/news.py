@@ -1,3 +1,6 @@
+from typing import Any
+
+
 from config.db_conf import get_session
 from CRUD.news import get_categories as get_categories_crud
 from CRUD.news import get_news_list as get_news_list_crud
@@ -5,55 +8,50 @@ from CRUD.news import get_news_detail as get_news_detail_crud
 from CRUD.news import increase_view_count, get_related_news
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from utils.response import success_response
-from schemas.schemas import page_commons
+from schemas.response import NewsListResponse, CategoryListResponse, NewsDetailItem
+from schemas.schemas import page_commons, PageCommons, ApiResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(prefix='/api/news', tags=['news'])
 
 @router.get('/categories')
 async def get_categories(
-    page_commons: dict = Depends(page_commons),
+    page_commons: PageCommons = Depends(page_commons),
     session: AsyncSession = Depends(get_session)
 ):
     categories = await get_categories_crud(
-        session=session, page=page_commons['page'], limit=page_commons['limit'])
-    return {
-        "code": 200,
-        "message": "获取新闻分类成功",
-        "data": {
-            # "total": len(categories),
-            "data": categories,
-            "page": page_commons['page'],
-            "limit": page_commons['limit'],
-        }
-    }
+        session=session,
+        page=page_commons.page,
+        limit=page_commons.limit
+    )
+
+    return ApiResponse[CategoryListResponse](
+        msg="获取新闻分类成功",
+        data=categories
+    )
+
 
 @router.get('/list')
 async def get_news_list(
     category_id: int | None = Query(None, alias='categoryId', description='分类ID（可选）'),
-    page_commons: dict = Depends(page_commons),
+    page_commons: PageCommons = Depends(page_commons),
     session: AsyncSession = Depends(get_session),
 ):
     response = await get_news_list_crud(
         session=session,
-        page=page_commons['page'],
-        limit=page_commons['limit'],
+        page=page_commons.page,
+        limit=page_commons.limit,
         category_id=category_id,
     )
-    # return success_response(msg="获取新闻列表成功", data=response)
-    return {
-        "code": 200,
-        "message": "获取新闻列表成功",
-        "data": {
-            "total": response['total'],
-            "hasMore": response['has_more'],
-            "list": response['news'],
-            "category": category_id,
-            "page": page_commons['page'],
-            "limit": page_commons['limit'],
-        }
-    }
+    data = NewsListResponse(
+        page=page_commons.page,
+        limit=page_commons.limit,
+        total=response.total,
+        list=response.list,
+        has_more=response.has_more,
+        category=category_id,
+    )
+    return ApiResponse[NewsListResponse](msg="获取新闻列表成功", data=data)
 
 @router.get('/detail')
 async def get_news_detail_curd(
@@ -74,11 +72,16 @@ async def get_news_detail_curd(
     
     related_news = await get_related_news(session, news_id, response.category_id)
 
-    return {
-        "code": 200,
-        "message": "获取新闻详情成功",
-        "data": {
-            **response.__dict__,
-            "relatedNews": related_news,
-        }
-    }
+    data = NewsDetailItem(
+        **response.__dict__,
+        related_news=related_news,
+    )
+    return ApiResponse[NewsDetailItem](msg="获取新闻详情成功", data=data)
+    # return {
+    #     "code": 200,
+    #     "message": "获取新闻详情成功",
+    #     "data": {
+    #         **response.__dict__,
+    #         "relatedNews": related_news,
+    #     }
+    # }

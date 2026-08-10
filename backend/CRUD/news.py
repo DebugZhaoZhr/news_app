@@ -3,26 +3,36 @@ from sqlalchemy import update, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import func
 from random import randint
+from schemas.response import CategoryListResponse, NewsDetailItem, NewsListResponse
 
 
 async def get_categories(
     session: AsyncSession,
     page: int = 1,
     limit: int = 10,
-) -> list[Category]:
+) -> CategoryListResponse:
     async with session.begin():
         skip = (page - 1) * limit
         stmt = select(Category).offset(skip).limit(limit)
         categories = (await session.scalars(stmt)).all()
+        
+        count_stmt = select(func.count(Category.id))
+        total = await session.scalar(count_stmt)
+
+    return CategoryListResponse(
+        page=page,
+        limit=limit,
+        total=total,
+        list=categories
+    )
     
-    return categories
 
 async def get_news_list(
     session: AsyncSession,
     category_id: int | None = None,
     page: int = 1,
     limit: int = 10,
-) -> list[News]:
+) -> NewsListResponse:
 
     async with session.begin():
         skip = (page - 1) * limit
@@ -35,8 +45,15 @@ async def get_news_list(
         total = await session.scalar(count_stmt)
         news = (await session.scalars(stmt)).all()
     
-    
-    return {'news': news, 'total': total, 'has_more': total > skip + limit}
+    return NewsListResponse(
+        page=page,
+        limit=limit,
+        total=total,
+        list=news,
+        has_more=total > skip + limit,
+        category=category_id
+    )
+    # return {'news': news, 'total': total, 'has_more': total > skip + limit}
     
 async def get_news_detail(
     session: AsyncSession,
