@@ -8,7 +8,7 @@ from CRUD.news import get_news_detail as get_news_detail_crud
 from CRUD.news import increase_view_count, get_related_news
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from schemas.response import NewsListResponse, CategoryListResponse, NewsDetailItem
+from schemas.news_response import NewsListResponse, CategoryListResponse, NewsDetailItem
 from schemas.schemas import page_commons, PageCommons, ApiResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -25,10 +25,7 @@ async def get_categories(
         limit=page_commons.limit
     )
 
-    return ApiResponse[CategoryListResponse](
-        msg="获取新闻分类成功",
-        data=categories
-    )
+    return ApiResponse[CategoryListResponse](msg="获取新闻分类成功", data=categories)
 
 
 @router.get('/list')
@@ -65,23 +62,15 @@ async def get_news_detail_curd(
     if not response:
         raise HTTPException(status_code=404, detail="新闻不存在")
     # else:
+
+
     views_res = await increase_view_count(session, news_id)
-    
     if not views_res:
         raise HTTPException(status_code=404, detail="新闻不存在")
     
-    related_news = await get_related_news(session, news_id, response.category_id)
 
-    data = NewsDetailItem(
-        **response.__dict__,
-        related_news=related_news,
-    )
-    return ApiResponse[NewsDetailItem](msg="获取新闻详情成功", data=data)
-    # return {
-    #     "code": 200,
-    #     "message": "获取新闻详情成功",
-    #     "data": {
-    #         **response.__dict__,
-    #         "relatedNews": related_news,
-    #     }
-    # }
+    related_news = await get_related_news(session, news_id, response.category_id)
+    
+    
+    response.related_news = related_news
+    return ApiResponse[NewsDetailItem](msg="获取新闻详情成功", data=response)

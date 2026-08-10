@@ -3,7 +3,7 @@ from sqlalchemy import update, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import func
 from random import randint
-from schemas.response import CategoryListResponse, NewsDetailItem, NewsListResponse
+from schemas.news_response import CategoryListResponse, NewsDetailItem, NewsListResponse
 
 
 async def get_categories(
@@ -58,10 +58,10 @@ async def get_news_list(
 async def get_news_detail(
     session: AsyncSession,
     news_id: int
-) -> News:
+) -> NewsDetailItem | None:
     async with session.begin():
         news = await session.get(News, news_id)
-    return news
+    return NewsDetailItem.model_validate(news)
 
 async def increase_view_count(
     session: AsyncSession,

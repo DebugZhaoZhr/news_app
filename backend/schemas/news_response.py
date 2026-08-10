@@ -50,7 +50,7 @@ class NewsItem(BaseModel):
 # 定义新闻详情 响应数据模型
 class NewsDetailItem(NewsItem):
     content: str = Field(..., description="新闻内容")
-    related_news: List[NewsItem] = Field(default_factory=list, description="相关新闻")
+    related_news: List[NewsItem] = Field(default_factory=list, description="相关新闻", alias="relatedNews")
     
     model_config = ConfigDict(
         from_attributes=True,
