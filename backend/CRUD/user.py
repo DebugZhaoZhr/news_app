@@ -121,21 +121,32 @@ async def get_user_update(
     user_data: UserInfoBase,
 ) -> UserInfoBase:
 
-    user_stmt = select(User).where(User.id == user_id)
-    user = await session.scalar(user_stmt)
+    user = await session.scalar(select(User).where(User.id == user_id))
     if not user:
         raise HTTPException(status_code=404, detail="用户不存在")
 
-    stmt = update(User).where(User.id == user_id).values(**user_data.model_dump(exclude_none=True))
-    await session.execute(stmt)
+    # stmt = update(User).where(User.id == user_id).values(**user_data.model_dump(exclude_none=True))
+    # await session.execute(stmt)
 
-    stmt2 = select(User).where(User.id == user_id)
-    user2 = await session.scalar(stmt2)
+    update_data = user_data.model_dump(exclude_none=True)
+    if not update_data:
+        return UserInfoBase(
+            nickname=user.nickname,
+            avatar=user.avatar,
+            gender=user.gender,
+            bio=user.bio,
+            phone=user.phone,
+        )
+        
+    for key, value in update_data.items():
+        setattr(user, key, value)
+
+    await session.flush()
     
     return UserInfoBase(
-            nickname=user2.nickname,
-            avatar=user2.avatar,
-            gender=user2.gender,
-            bio=user2.bio,
-            phone=user2.phone,
-        )
+        nickname=user.nickname,
+        avatar=user.avatar,
+        gender=user.gender,
+        bio=user.bio,
+        phone=user.phone,
+    )
