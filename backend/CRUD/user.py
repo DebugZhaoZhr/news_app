@@ -1,15 +1,15 @@
 from models.user import User, UserToken
-from schemas.user import UserRequest, UserAuthResponse, UserInfoResponse, UserInfoBase
+from schemas.user import UserRequest, UserAuthResponse, UserInfoResponse, UserInfoBase, UserUptPwdResponse
 from utils.public import hash_password, verify_password
 
-from sqlalchemy import select, update
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import HTTPException, status, Header
+from fastapi import HTTPException, status
 from datetime import datetime, timedelta
 
 import uuid
 
-
+# 获取用户信息
 async def get_user(
     session: AsyncSession,
     user_name: str
@@ -30,7 +30,7 @@ async def get_user(
     await session.flush()
     return data
 
-
+# 创建用户
 async def create_user(
     session: AsyncSession,
     user_data: UserRequest
@@ -46,7 +46,7 @@ async def create_user(
     await session.flush()
     return user
 
-
+# 创建token
 async def create_token(
     session: AsyncSession,
     user_id: int
@@ -71,7 +71,7 @@ async def create_token(
     await session.flush()
     return token
 
-
+# 获取登录用户的token
 async def get_token(
     session: AsyncSession,
     user_data: UserRequest
@@ -91,7 +91,7 @@ async def get_token(
         user_info=user
     )
 
-
+# 获取用户信息
 async def get_user_info(
     session: AsyncSession,
     token: str
@@ -114,7 +114,7 @@ async def get_user_info(
     await session.flush()
     return UserInfoResponse.model_validate(user)
 
-
+# 更新用户信息
 async def get_user_update(
     session: AsyncSession,
     user_id: int,
@@ -137,7 +137,7 @@ async def get_user_update(
             bio=user.bio,
             phone=user.phone,
         )
-        
+
     for key, value in update_data.items():
         setattr(user, key, value)
 
@@ -150,3 +150,21 @@ async def get_user_update(
         bio=user.bio,
         phone=user.phone,
     )
+
+# 更新密码
+async def update_password(
+    session: AsyncSession,
+    user_id: int,
+    user_data: UserUptPwdResponse,
+) -> UserInfoResponse:
+
+    user = await session.scalar(select(User).where(User.id == user_id))
+    if not user:
+        raise HTTPException(status_code=404, detail="用户不存在")
+    if not verify_password(user_data.old_password, user.password):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="旧密码错误")
+
+    user.password = hash_password(user_data.new_password)
+    await session.flush()
+
+    return UserInfoResponse.model_validate(user)

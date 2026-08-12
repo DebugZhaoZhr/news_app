@@ -1,5 +1,4 @@
 from pydantic import BaseModel, Field
-from datetime import datetime
 
 class UserRequest(BaseModel):
     username: str
@@ -27,6 +26,16 @@ class UserInfoResponse(UserInfoBase):
 class UserAuthResponse(BaseModel):
     token: str
     user_info: UserInfoResponse = Field(..., alias='userInfo', description='用户信息')
+
+    model_config = {
+        'from_attributes': True, # 允许从模型属性中获取值
+        'populate_by_name': True, # 允许alias 根据字段名填充值
+    }
+
+
+class UserUptPwdResponse(BaseModel):
+    new_password: str = Field(..., alias='newPassword', min_length=6, description='新密码')
+    old_password: str = Field(..., alias='oldPassword', description='旧密码')
 
     model_config = {
         'from_attributes': True, # 允许从模型属性中获取值

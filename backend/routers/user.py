@@ -1,9 +1,9 @@
 from config.db_conf import get_session
 from fastapi import APIRouter, Depends, HTTPException, Query, Header
 from sqlalchemy.ext.asyncio import AsyncSession
-from schemas.user import UserRequest, UserInfoResponse, UserAuthResponse, UserInfoBase
+from schemas.user import UserRequest, UserInfoResponse, UserAuthResponse, UserInfoBase, UserUptPwdResponse
 from schemas.schemas import ApiResponse
-from CRUD.user import create_user, get_user, create_token, get_token, get_user_info, get_user_update
+from CRUD.user import create_user, get_user, create_token, get_token, get_user_info, get_user_update, update_password as update_password_crud
 from CRUD.auth import verify_token
 
 
@@ -70,3 +70,23 @@ async def update(
 
         
     return ApiResponse[UserInfoBase](msg="更新成功", data=result)
+
+
+@router.put('/password')
+async def update_password(
+    user_data: UserUptPwdResponse,
+    session: AsyncSession = Depends(get_session),
+    current_user: UserInfoResponse = Depends(verify_token)
+) -> ApiResponse:
+
+    async with session.begin():
+        result = await update_password_crud(
+            session, 
+            current_user.id, 
+            user_data
+        )
+        if not result:
+            raise HTTPException(status_code=400, detail="用户名不存在")
+
+        
+    return ApiResponse[None](msg="更新成功", data=None)
