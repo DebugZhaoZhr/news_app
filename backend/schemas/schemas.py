@@ -6,7 +6,7 @@ from datetime import datetime
 T = TypeVar("T")
 
 async def page_commons(
-    page: int = Query(1, description="页码", ge=1, le=100),
+    page: int = Query(1, description="页码", ge=1),
     limit: int = Query(10, description="每页数量", le=100)
 ) -> PageCommons:
     return PageCommons(page=page, limit=limit)

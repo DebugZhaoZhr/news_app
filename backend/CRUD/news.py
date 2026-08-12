@@ -5,19 +5,19 @@ from sqlalchemy.sql import func
 from random import randint
 from schemas.news_response import CategoryListResponse, NewsItem, NewsDetailItem, NewsListResponse
 
-
+# 获取新闻分类列表
 async def get_categories(
     session: AsyncSession,
     page: int = 1,
     limit: int = 10,
 ) -> CategoryListResponse:
-    async with session.begin():
-        skip = (page - 1) * limit
-        stmt = select(Category).offset(skip).limit(limit)
-        categories = (await session.scalars(stmt)).all()
-        
-        count_stmt = select(func.count(Category.id))
-        total = await session.scalar(count_stmt)
+    
+    skip = (page - 1) * limit
+    stmt = select(Category).offset(skip).limit(limit)
+    categories = (await session.scalars(stmt)).all()
+    
+    count_stmt = select(func.count(Category.id))
+    total = await session.scalar(count_stmt)
 
     return CategoryListResponse(
         page=page,
@@ -26,7 +26,7 @@ async def get_categories(
         list=categories
     )
     
-
+# 获取新闻列表
 async def get_news_list(
     session: AsyncSession,
     category_id: int | None = None,
@@ -34,7 +34,6 @@ async def get_news_list(
     limit: int = 10,
 ) -> NewsListResponse:
 
-    # async with session.begin():
     skip = (page - 1) * limit
     if category_id is not None:
         stmt = select(News).where(News.category_id == category_id).offset(skip).limit(limit)
@@ -57,23 +56,24 @@ async def get_news_list(
     # return {'news': news, 'total': total, 'has_more': total > skip + limit}
     
     
+# 获取新闻详情
 async def get_news_detail(
     session: AsyncSession,
     news_id: int
 ) -> NewsDetailItem:
-    # async with session.begin():
+
     news = await session.get(News, news_id)
     if not news:
         return None
     await session.flush()
     return NewsDetailItem.model_validate(news)
 
-
+# 增加新闻点击量
 async def increase_view_count(
     session: AsyncSession,
     news_id: int
 ) -> None:
-    # async with session.begin():
+
     # 方法1 直接更新数据库
     # stmt = update(News).where(News.id == news_id).values(views=News.views + 1)
     # result = await session.execute(stmt)
@@ -86,13 +86,13 @@ async def increase_view_count(
     return news
     # return result.rowcount > 0
 
-
+# 获取相关新闻
 async def get_related_news(
     session: AsyncSession,
     news_id: int,
     category_id: int
 ) -> list[NewsItem]:
-    # async with session.begin():
+
     stmt = select(News).where(
         News.id != news_id,
         News.category_id == category_id
