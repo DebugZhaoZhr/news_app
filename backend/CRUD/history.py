@@ -53,7 +53,6 @@ async def delete_history_crud(
     await session.delete(history)
     await session.flush()
     
-
     return '删除历史记录成功'
 
 

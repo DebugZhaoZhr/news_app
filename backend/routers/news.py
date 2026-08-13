@@ -1,5 +1,5 @@
 from config.db_conf import get_session
-from CRUD.news import get_categories as get_categories_crud
+from CRUD.news_cache import get_categories as get_categories_crud
 from CRUD.news import get_news_list as get_news_list_crud
 from CRUD.news import get_news_detail as get_news_detail_crud
 from CRUD.news import increase_view_count, get_related_news

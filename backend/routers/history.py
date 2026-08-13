@@ -33,9 +33,9 @@ async def add_history(
     
 
 # 删除历史记录
-@router.delete('/delete/{newsId}')
+@router.delete('/delete/{news_id}')
 async def remove_history(
-    news_id: int = Path(..., alias='newsId', description='新闻ID'),
+    news_id: int = Path(..., description='新闻ID'),
     session: AsyncSession = Depends(get_session),
     current_user: UserInfoResponse = Depends(verify_token)
 ) -> ApiResponse:
