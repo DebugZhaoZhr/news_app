@@ -67,6 +67,9 @@ export const useNewsStore = defineStore("news", {
 
     // 获取新闻列表
     async getNewsList(isRefresh = false) {
+      // 防止并发请求：正在加载时跳过（刷新请求除外）
+      if (this.loading && !isRefresh) return;
+
       if (isRefresh) {
         this.refreshing = true;
         this.newsList = [];
