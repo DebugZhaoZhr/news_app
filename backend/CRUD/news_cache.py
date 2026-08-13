@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import func
 from random import randint
 from schemas.news_response import CategoryListResponse, NewsItem, NewsDetailItem, NewsListResponse
-from cache.news_cache import get_cached_categories, set_cached_categories
+from cache.news_cache import get_cached_categories, set_cached_categories, get_cached_news_list, set_cached_news_list
 from fastapi.encoders import jsonable_encoder
 
 
@@ -58,6 +58,19 @@ async def get_news_list(
 ) -> NewsListResponse:
 
     skip = (page - 1) * limit
+    
+    # 从缓存中获取新闻列表
+    cached_news = await get_cached_news_list(category_id, page, limit)
+    if cached_news is not None:
+        return NewsListResponse(
+            page=page,
+            limit=limit,
+            total=cached_news['total'],
+            list=cached_news['list'],
+            has_more=cached_news['total'] > skip + limit,
+            category=category_id
+        )
+
     if category_id is not None:
         stmt = select(News).where(News.category_id == category_id).offset(skip).limit(limit)
         count_stmt = select(func.count(News.id)).where(News.category_id == category_id)
@@ -67,6 +80,14 @@ async def get_news_list(
     total = await session.scalar(count_stmt)
     news = (await session.scalars(stmt)).all()
     await session.flush()
+
+    if news:
+        # 转换为JSON可序列化格式
+        news_data = jsonable_encoder(news)
+        # 缓存新闻列表
+        ok = await set_cached_news_list(category_id, page, limit, total, news_data)
+        if not ok:
+            print('缓存新闻列表失败, 请检查 Redis 配置')
     
     return NewsListResponse(
         page=page,
